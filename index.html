@@ -1,50 +1,38 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My GitHub Pages Site</title>
     
-    <!-- 1. Load the official Google Cast SDK -->
+    <!-- Official Google Cast SDK -->
     <script type="text/javascript" src="https://gstatic.com"></script>
     
     <style>
         body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding-top: 50px;
-            background-color: #f4f4f9;
+            font-family: sans-serif;
+            padding: 20px;
+            background: #ffffff;
         }
         /* Style for the Google Cast Launcher button */
         #cast-button {
             display: inline-block;
-            width: 40px;
-            height: 40px;
+            width: 50px;
+            height: 50px;
             cursor: pointer;
             --connected-color: #4285f4;
-            --disconnected-color: #757575;
-        }
-        .container {
-            background-color: white;
-            padding: 30px;
-            border-radius: 8px;
-            display: inline-block;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            --disconnected-color: #000000;
         }
     </style>
 </head>
 <body>
 
-    <div class="container">
-        <h1>Hello World! Welcome to my website.</h1>
-        <p>Click below to stream to your Nest Hub:</p>
-        
-        <!-- 2. The Google Cast Button element -->
-        <google-cast-launcher id="cast-button"></google-cast-launcher>
-    </div>
+    <h1>Hello World! Welcome to my website.</h1>
+    <p>Click the icon below to connect to your Nest Hub:</p>
+    
+    <!-- The Google Cast Button element -->
+    <google-cast-launcher id="cast-button"></google-cast-launcher>
 
     <script>
-        // 3. Initialize the Google Cast framework API
+        // Initialize the Google Cast framework API
         window.__onGCastApiAvailable = function(isAvailable) {
             if (isAvailable) {
                 initializeCastApi();
@@ -53,7 +41,6 @@
 
         function initializeCastApi() {
             cast.framework.CastContext.getInstance().setOptions({
-                // Using the default media receiver ID provided by Google
                 receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
                 autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
             });

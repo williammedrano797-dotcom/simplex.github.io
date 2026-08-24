@@ -1,22 +1,52 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My GitHub Pages Site</title>
     
-    <!-- Official Google Cast SDK -->
+    <!-- Forces Cast Sender API to inject directly into the DOM -->
     <script type="text/javascript" src="https://gstatic.com"></script>
     
     <style>
         body {
-            font-family: sans-serif;
-            padding: 20px;
-            background: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 30px;
+            background-color: #ffffff;
+            color: #000000;
         }
-        /* Style for the Google Cast Launcher button */
-        #cast-button {
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        p {
+            font-size: 16px;
+            color: #555;
+            margin-bottom: 25px;
+        }
+
+        /* Bulletproof style wrapper to ensure the icon renders visually */
+        .cast-btn-wrapper {
             display: inline-block;
-            width: 50px;
-            height: 50px;
+            background-color: #e0e0e0; /* Gray anchor block visible even if script delays */
+            border: 2px solid #333333;
+            border-radius: 8px;
+            padding: 10px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .cast-btn-wrapper:hover {
+            background-color: #d4d4d4;
+        }
+
+        /* Forces Google's hidden UI tag to have physical width and height */
+        google-cast-launcher {
+            display: block !important;
+            width: 50px !important;
+            height: 50px !important;
             cursor: pointer;
             --connected-color: #4285f4;
             --disconnected-color: #000000;
@@ -26,24 +56,30 @@
 <body>
 
     <h1>Hello World! Welcome to my website.</h1>
-    <p>Click the icon below to connect to your Nest Hub:</p>
+    <p>Click the block below to discover and connect to your Nest Hub:</p>
     
-    <!-- The Google Cast Button element -->
-    <google-cast-launcher id="cast-button"></google-cast-launcher>
+    <!-- Visual container enclosing the launcher tag -->
+    <div class="cast-btn-wrapper">
+        <google-cast-launcher id="cast-button"></google-cast-launcher>
+    </div>
 
     <script>
-        // Initialize the Google Cast framework API
+        // High-level CAF API initialization sequence
         window.__onGCastApiAvailable = function(isAvailable) {
             if (isAvailable) {
                 initializeCastApi();
+            } else {
+                console.log("Cast API not available yet.");
             }
         };
 
         function initializeCastApi() {
-            cast.framework.CastContext.getInstance().setOptions({
+            const context = cast.framework.CastContext.getInstance();
+            context.setOptions({
                 receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
                 autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
             });
+            console.log("Cast API successfully initialized.");
         }
     </script>
 

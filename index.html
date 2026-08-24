@@ -3,146 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simplex 4100 Dual-Sync Simulator</title>
-    <!-- Load the official Google Cast network sender utility library -->
-    <script src="https://gstatic.com"></script>
+    <title>My GitHub Pages Site</title>
+    
+    <!-- 1. Load the official Google Cast SDK -->
+    <script type="text/javascript" src="https://gstatic.com"></script>
+    
     <style>
-        body { background-color: #111111; color: #ffffff; font-family: 'Arial', sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        .panel { background-color: #b80000; padding: 25px; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.8); width: 440px; border: 4px solid #7a0000; }
-        .header { text-align: center; font-weight: bold; font-size: 22px; margin-bottom: 20px; text-shadow: 2px 2px #000; letter-spacing: 1px; }
-        .lcd-display { background-color: #00220a; border: 3px solid #00e65c; border-radius: 4px; padding: 15px; font-family: 'Courier New', Courier, monospace; color: #00ff66; font-size: 15px; font-weight: bold; height: 45px; margin-bottom: 25px; box-shadow: inset 0 0 10px rgba(0,0,0,0.9); }
-        .button-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        button { padding: 15px; font-size: 13px; font-weight: bold; border: none; border-radius: 4px; cursor: pointer; text-transform: uppercase; box-shadow: 0 4px #4a0000; }
-        button:active { transform: translateY(3px); box-shadow: 0 1px #4a0000; }
-        .btn-alarm { background-color: #ff2b2b; color: white; }
-        .btn-silence { background-color: #ff9400; color: black; }
-        .btn-reset { background-color: #4a4a4a; color: white; }
-        .btn-cast { background-color: #2b8eff; color: white; grid-column: span 2; }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding-top: 50px;
+            background-color: #f4f4f9;
+        }
+        /* Style for the Google Cast Launcher button */
+        #cast-button {
+            display: inline-block;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            --connected-color: #4285f4;
+            --disconnected-color: #757575;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            display: inline-block;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
 
-<div class="panel">
-    <div class="header">SYSTEM INTERFACE PANEL</div>
-    
-    <!-- Virtual Simplex LCD -->
-    <div class="lcd-display" id="lcd">
-        SYSTEM IS NORMAL<br>READY TO TEST SYSTEM
+    <div class="container">
+        <h1>Hello World! Welcome to my website.</h1>
+        <p>Click below to stream to your Nest Hub:</p>
+        
+        <!-- 2. The Google Cast Button element -->
+        <google-cast-launcher id="cast-button"></google-cast-launcher>
     </div>
 
-    <!-- Operating System Control Nodes -->
-    <div class="button-grid">
-        <button class="btn-alarm" onclick="triggerAlarm()">Drill / Alarm</button>
-        <button class="btn-silence" onclick="silenceAlarm()">Alarm Silence</button>
-        <button class="btn-reset" onclick="resetSystem()">System Reset</button>
-        <button class="btn-cast" id="castBtn" onclick="launchCast()">🔗 Link Nest Hubs (Wi-Fi)</button>
-    </div>
-</div>
+    <script>
+        // 3. Initialize the Google Cast framework API
+        window.__onGCastApiAvailable = function(isAvailable) {
+            if (isAvailable) {
+                initializeCastApi();
+            }
+        };
 
-<!-- Embedded dynamic audio receiver element for local Bluetooth streaming -->
-<audio id="localWhoopAudio" loop crossorigin="anonymous"></audio>
-
-<script>
-    // ==========================================
-    // 🛑 DROPBOX FILE INPUT SETUP 🛑
-    // ==========================================
-    // PASTE YOUR DIRECT STREAMING LINK BETWEEN THE QUOTES BELOW!
-    // Remember to ensure it ends with "?raw=1" instead of "?dl=0"
-    const alarmAudioUrl = 'https://soundjay.com'; 
-
-    let systemState = "NORMAL";
-    let castSession = null;
-    let currentMediaControl = null;
-
-    // Load URL directly into local audio node pipeline
-    document.getElementById('localWhoopAudio').src = alarmAudioUrl;
-
-    // ACTIVATE SYSTEM FIRE DRILL
-    function triggerAlarm() {
-        if (systemState === "ALARM") return;
-        systemState = "ALARM";
-        
-        document.getElementById('lcd').innerHTML = "🚨 FIRE ALARM DISPATCHED<br>EVACUATION IN PROGRESS...";
-        
-        // 1. Play out phone/computer to connected Bluetooth Hubspace Speaker
-        const localAudio = document.getElementById('localWhoopAudio');
-        localAudio.play().catch(err => {
-            console.warn("Local sound routing blocked by browser safety protocol: ", err);
-        });
-
-        // 2. Play out your Wi-Fi network to the Nest Hub Group
-        playWhoopOnCast();
-    }
-
-    // SILENCE DRILL SIGNALS
-    function silenceAlarm() {
-        if (systemState !== "ALARM") return;
-        systemState = "SILENCED";
-        
-        document.getElementById('lcd').innerHTML = "🚨 AUDIBLE ALARM SILENCED<br>PANEL CURRENTLY RESPONDS";
-        
-        // Kill local Bluetooth audio pipeline
-        const localAudio = document.getElementById('localWhoopAudio');
-        localAudio.pause();
-        localAudio.currentTime = 0;
-        
-        // Kill over-the-air Google Cast pipeline
-        stopCastAudio();
-    }
-
-    // CLEAR PANEL LOGIC
-    function resetSystem() {
-        systemState = "NORMAL";
-        document.getElementById('localWhoopAudio').pause();
-        document.getElementById('localWhoopAudio').currentTime = 0;
-        stopCastAudio();
-        document.getElementById('lcd').innerHTML = "SYSTEM IS NORMAL<br>READY TO TEST SYSTEM";
-    }
-
-    // NATIVE GOOGLE CAST FRAMEWORK CONFIGURATION
-    window.__onGCastApiAvailable = function(isAvailable) { 
-        if (isAvailable) { initializeCastApi(); } 
-    };
-
-    function initializeCastApi() {
-        cast.framework.CastContext.getInstance().setOptions({
-            receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
-            autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
-        });
-    }
-
-    function launchCast() {
-        let context = cast.framework.CastContext.getInstance();
-        context.requestSession().then(() => {
-            castSession = context.getCurrentSession();
-            let deviceName = castSession.getCastDevice().friendlyName;
-            document.getElementById('castBtn').innerText = "✅ Group Linked: " + deviceName;
-        }).catch(err => console.error("Could not sync network device: ", err));
-    }
-
-    function playWhoopOnCast() {
-        if (!castSession) {
-            console.log("No Wi-Fi cast target established. Playing over local hardware only.");
-            return;
+        function initializeCastApi() {
+            cast.framework.CastContext.getInstance().setOptions({
+                // Using the default media receiver ID provided by Google
+                receiverApplicationId: chrome.cast.media.DEFAULT_MEDIA_RECEIVER_APP_ID,
+                autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED
+            });
         }
-        let mediaInfo = new chrome.cast.media.MediaInfo(alarmAudioUrl, 'audio/mp3');
-        mediaInfo.streamType = chrome.cast.media.StreamType.BUFFERED;
-        
-        let request = new chrome.cast.media.LoadRequest(mediaInfo);
-        request.repeatMode = chrome.cast.media.RepeatMode.ALL; // Forces Nest Hubs to loop endlessly
-
-        castSession.loadMedia(request).then((mediaSession) => {
-            currentMediaControl = mediaSession;
-        }).catch(err => console.error("Error pushing network stream: ", err));
-    }
-
-    function stopCastAudio() {
-        if (currentMediaControl) { 
-            currentMediaControl.stop(null, null, null); 
-            currentMediaControl = null; 
-        }
-    }
-</script>
+    </script>
 
 </body>
 </html>
